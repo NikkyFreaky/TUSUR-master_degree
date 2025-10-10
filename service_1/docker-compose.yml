@@ -1,0 +1,11 @@
+services:
+  service_1:
+    image: node:22-alpine
+    container_name: service_1
+    working_dir: /app
+    volumes:
+      - ./service_1.js:/app/service_1.js
+      - ./package.json:/app/package.json
+    command: sh -c "npm install && node service_1.js"
+    ports:
+      - '3000:3000'
