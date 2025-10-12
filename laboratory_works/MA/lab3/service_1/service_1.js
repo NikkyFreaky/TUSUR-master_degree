@@ -2,6 +2,7 @@ require('dotenv').config();
 const amqp = require('amqplib/callback_api');
 
 const url = process.env.RABBITMQ_URL;
+const queue = process.env.QUEUE_NAME;
 
 amqp.connect(url, function (error0, connection) {
   if (error0) {
@@ -13,7 +14,6 @@ amqp.connect(url, function (error0, connection) {
       throw error1;
     }
 
-    var queue = process.env.QUEUE_NAME;
     var msg = 'Hello from service 1';
 
     channel.assertQueue(queue, {
@@ -21,7 +21,7 @@ amqp.connect(url, function (error0, connection) {
     });
     channel.sendToQueue(queue, Buffer.from(msg));
 
-    console.log(' [x] Sent %s', msg);
+    console.log('Sent %s', msg);
 
     setTimeout(function () {
       connection.close();
