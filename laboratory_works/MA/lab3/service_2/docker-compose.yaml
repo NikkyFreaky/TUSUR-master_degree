@@ -1,0 +1,14 @@
+services:
+  service_2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: service_2
+    env_file:
+      - .env
+    networks:
+      - lab3-net
+
+networks:
+  lab3-net:
+    external: true
