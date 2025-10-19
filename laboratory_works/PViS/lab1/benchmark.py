@@ -205,7 +205,29 @@ def run_once(video_path, num_processes, run_index):
 
 
 def benchmark():
-    Path("output").mkdir(exist_ok=True)
+    # === Очистка старых результатов ===
+    output_dir = Path("output")
+    if output_dir.exists():
+        # удаляем все mp4 файлы из папки output
+        for file in output_dir.glob("*.mp4"):
+            try:
+                file.unlink()
+            except Exception as e:
+                print(f"Не удалось удалить {file}: {e}")
+    else:
+        output_dir.mkdir()
+
+    # удаляем старый CSV, если он существует
+    results_csv = Path("results.csv")
+    if results_csv.exists():
+        try:
+            results_csv.unlink()
+            print("Старый results.csv удалён")
+        except Exception as e:
+            print(f"Не удалось удалить results.csv: {e}")
+
+    print("Папка output очищена, начинаем новый бенчмарк...\n")
+
     results = []
 
     for workers in [1, 2, 4, 6, 8, 10]:
