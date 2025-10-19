@@ -205,10 +205,12 @@ def run_once(video_path, num_processes, run_index):
 
 
 def benchmark():
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
     # === Очистка старых результатов ===
     output_dir = Path("output")
     if output_dir.exists():
-        # удаляем все mp4 файлы из папки output
         for file in output_dir.glob("*.mp4"):
             try:
                 file.unlink()
@@ -217,7 +219,7 @@ def benchmark():
     else:
         output_dir.mkdir()
 
-    # удаляем старый CSV, если он существует
+    # Удаляем старый CSV
     results_csv = Path("results.csv")
     if results_csv.exists():
         try:
@@ -226,8 +228,20 @@ def benchmark():
         except Exception as e:
             print(f"Не удалось удалить results.csv: {e}")
 
-    print("Папка output очищена, начинаем новый бенчмарк...\n")
+    # Очистка и пересоздание папки plots
+    plots_dir = Path("plots")
+    if plots_dir.exists():
+        for file in plots_dir.glob("*.png"):
+            try:
+                file.unlink()
+            except Exception as e:
+                print(f"Не удалось удалить {file}: {e}")
+    else:
+        plots_dir.mkdir()
 
+    print("Папки output и plots очищены, начинаем новый бенчмарк...\n")
+
+    # === Основной цикл бенчмарка ===
     results = []
 
     for workers in [1, 2, 4, 6, 8, 10]:
@@ -265,9 +279,51 @@ def benchmark():
             f"Лучший результат для {workers} процессов: {best_time:.2f} с ({best_file})"
         )
 
+    # === Сохраняем CSV ===
     df = pd.DataFrame(results)
-    df.to_csv("results.csv", index=False)
+    df.to_csv(results_csv, index=False)
     print("\nВсе результаты сохранены в results.csv")
+
+    # === Построение графиков ===
+    sns.set(style="whitegrid")
+
+    for video_name, duration in VIDEOS:
+        subset = df[df["video"] == Path(video_name).name]
+
+        if subset.empty:
+            continue
+
+        # 1. График среднего времени
+        summary = subset.groupby("processes", as_index=False)["elapsed_time"].mean()
+
+        plt.figure(figsize=(8, 5))
+        sns.lineplot(data=summary, x="processes", y="elapsed_time", marker="o")
+        plt.title(f"Average Time — {Path(video_name).stem} ({duration}s)")
+        plt.xlabel("Number of Processes")
+        plt.ylabel("Average Time (s)")
+        plt.grid(True)
+        plt.tight_layout()
+
+        fname_avg = plots_dir / f"{Path(video_name).stem}_{duration}s_avg_time.png"
+        plt.savefig(fname_avg, dpi=200)
+        plt.close()
+
+        # 2. Boxplot распределения
+        plt.figure(figsize=(8, 5))
+        sns.boxplot(data=subset, x="processes", y="elapsed_time")
+        plt.title(f"Time Distribution — {Path(video_name).stem} ({duration}s)")
+        plt.xlabel("Number of Processes")
+        plt.ylabel("Execution Time (s)")
+        plt.grid(True, axis="y")
+        plt.tight_layout()
+
+        fname_box = plots_dir / f"{Path(video_name).stem}_{duration}s_boxplot.png"
+        plt.savefig(fname_box, dpi=200)
+        plt.close()
+
+        print(f"Графики сохранены: {fname_avg.name}, {fname_box.name}")
+
+    print("\n✅ Построение графиков завершено. Все результаты в папке 'plots/'")
 
 
 if __name__ == "__main__":
