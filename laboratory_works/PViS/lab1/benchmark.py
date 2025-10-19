@@ -7,6 +7,8 @@ import cv2 as cv
 import numpy as np
 import pandas as pd
 
+cv.setUseOptimized(True)
+
 COLOR_RANGES = {
     "orange": ((214, 117, 13), (255, 197, 93)),
     "red": ((150, 20, 30), (230, 80, 90)),
@@ -15,7 +17,7 @@ COLOR_RANGES = {
 
 DEFAULT_RGB_RANGE = ((0, 0, 0), (255, 255, 255))
 
-MIN_AREA = 250
+MIN_AREA = 200
 KERNEL_SIZE = 9
 NUM_RUNS = 5
 PROCESS_COUNTS = [1, 2, 4, 6, 8, 10]
@@ -72,6 +74,8 @@ def process_range(
     part_index,
 ):
     cap = cv.VideoCapture(input_path)
+    cap.set(cv.CAP_PROP_BUFFERSIZE, 1)
+
     fps = cap.get(cv.CAP_PROP_FPS)
     w = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
     h = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
@@ -80,7 +84,6 @@ def process_range(
     out = cv.VideoWriter(output_path, cv.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
     kernel = np.ones((kernel_size, kernel_size), np.float32) / (kernel_size**2)
-
     morph_kernel = np.ones((3, 3), np.uint8)
     dilate_kernel = np.ones((3, 3), np.uint8)
 
@@ -104,6 +107,8 @@ def process_range(
 
     frames_to_process = end_frame - start_frame
 
+    region_mask = np.zeros((h, w), dtype=np.uint8)
+
     for _ in range(frames_to_process):
         ret, frame = cap.read()
         if not ret:
@@ -118,12 +123,15 @@ def process_range(
             mask, connectivity=8
         )
 
-        region_mask = np.zeros((h, w), dtype=np.uint8)
+        region_mask.fill(0)
 
         valid_regions = []
-        for i in range(1, n_labels):
-            area = stats[i, cv.CC_STAT_AREA]
-            if area >= min_area:
+
+        if n_labels > 1:
+            areas = stats[1:, cv.CC_STAT_AREA]
+            valid_idx = np.where(areas >= min_area)[0] + 1
+
+            for i in valid_idx:
                 x = stats[i, cv.CC_STAT_LEFT]
                 y = stats[i, cv.CC_STAT_TOP]
                 w_box = stats[i, cv.CC_STAT_WIDTH]
@@ -132,27 +140,32 @@ def process_range(
                 cv.rectangle(region_mask, (x, y), (x + w_box, y + h_box), 255, -1)
                 valid_regions.append((x, y, w_box, h_box))
 
-        region_mask = cv.dilate(region_mask, dilate_kernel, iterations=1)
+        if len(valid_regions) == 0:
+            result = cv.filter2D(frame, -1, kernel)
+        else:
+            region_mask = cv.dilate(region_mask, dilate_kernel, iterations=1)
 
-        blurred = cv.filter2D(frame, -1, kernel)
+            blurred = cv.filter2D(frame, -1, kernel)
 
-        result = blurred.copy()
+            result = blurred
 
-        annotated = frame.copy()
-        for x, y, w_box, h_box in valid_regions:
-            cv.rectangle(annotated, (x, y), (x + w_box, y + h_box), color, thickness)
-            cv.putText(
-                annotated,
-                f"P{part_index}",
-                (x + 5, y + 20),
-                cv.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                color,
-                2,
-                cv.LINE_AA,
-            )
+            annotated = frame.copy()
+            for x, y, w_box, h_box in valid_regions:
+                cv.rectangle(
+                    annotated, (x, y), (x + w_box, y + h_box), color, thickness
+                )
+                cv.putText(
+                    annotated,
+                    f"P{part_index}",
+                    (x + 5, y + 20),
+                    cv.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    color,
+                    2,
+                    cv.LINE_AA,
+                )
 
-        cv.copyTo(annotated, region_mask, result)
+            np.copyto(result, annotated, where=region_mask[..., None].astype(bool))
 
         out.write(result)
 
@@ -170,6 +183,8 @@ def concat_videos(temp_files, output_path, fps):
 
     for part in temp_files:
         cap = cv.VideoCapture(part)
+        cap.set(cv.CAP_PROP_BUFFERSIZE, 3)
+
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -228,11 +243,7 @@ def process_video_parallel(
         Path(f).unlink(missing_ok=True)
 
 
-# ======================= Benchmark ==========================
-
-
 def run_once(video_path, num_processes, run_index, video_prefix):
-    """Запуск одного теста"""
     video_name = Path(video_path).stem
     out_path = f"output/{video_prefix}_p{num_processes}_r{run_index}_{video_name}.mp4"
 
@@ -253,7 +264,6 @@ def run_once(video_path, num_processes, run_index, video_prefix):
 
 
 def benchmark():
-    """Главная функция бенчмарка"""
     import matplotlib.pyplot as plt
     import seaborn as sns
 
@@ -266,9 +276,9 @@ def benchmark():
 
     print(f"\nНайдена/ы {len(video_groups)} группа/ы видео:")
     for prefix, videos in video_groups.items():
-        print(f"  - {prefix}: {len(videos)} видео")
+        print(f" - {prefix}: {len(videos)} видео")
         for v in videos:
-            print(f"    • {v['name']} ({v['duration']}s)")
+            print(f"   • {v['name']} ({v['duration']}s)")
 
     output_dir = Path("output")
     if output_dir.exists():
@@ -294,12 +304,14 @@ def benchmark():
     if results_csv.exists():
         results_csv.unlink()
 
-    print("\nПапки output и plots очищены, начинаем бенчмарк...\n")
+    print("\nПапки output и plots очищены")
+    print("Начинаем бенчмарк...\n")
 
     all_results = []
+    total_start = time.perf_counter()
 
     for prefix, videos in video_groups.items():
-        print(f"\n{'=' * 60}")
+        print(f"{'=' * 60}")
         print(f"Группа: {prefix}")
 
         rgb_range = get_color_range(prefix)
@@ -343,18 +355,21 @@ def benchmark():
                         if Path(out_path).exists():
                             Path(out_path).unlink()
 
+            print(f"Лучшие результаты для {workers} процесса/ов:")
             for video_info in videos:
                 video_name = video_info["name"]
                 key = (video_name, workers)
                 if key in best_times:
-                    print(
-                        f"\nЛучший для {video_name} ({workers} процесса/ов): {best_times[key][0]:.2f} с"
-                    )
+                    print(f" - {video_name}: {best_times[key][0]:.2f} с")
+            print("─" * 60)
+
+    total_elapsed = time.perf_counter() - total_start
 
     df = pd.DataFrame(all_results)
     df.to_csv(results_csv, index=False)
     print(f"\nВсе результаты сохранены в {results_csv}")
 
+    # Построение графиков
     sns.set_theme(style="whitegrid")
 
     for prefix in video_groups.keys():
@@ -367,7 +382,12 @@ def benchmark():
 
         plt.figure(figsize=(10, 6))
         sns.lineplot(
-            data=summary, x="processes", y="elapsed_time", marker="o", linewidth=2.5
+            data=summary,
+            x="processes",
+            y="elapsed_time",
+            marker="o",
+            linewidth=2.5,
+            markersize=8,
         )
         plt.title(f"Average Processing Time — {prefix}", fontsize=14, fontweight="bold")
         plt.xlabel("Number of Processes", fontsize=12)
@@ -380,7 +400,14 @@ def benchmark():
         plt.close()
 
         plt.figure(figsize=(10, 6))
-        sns.boxplot(data=subset, x="processes", y="elapsed_time", palette="Set2")
+        sns.boxplot(
+            data=subset,
+            x="processes",
+            y="elapsed_time",
+            hue="processes",
+            palette="Set2",
+            legend=False,
+        )
         plt.title(f"Time Distribution — {prefix}", fontsize=14, fontweight="bold")
         plt.xlabel("Number of Processes", fontsize=12)
         plt.ylabel("Execution Time (seconds)", fontsize=12)
@@ -391,10 +418,15 @@ def benchmark():
         plt.savefig(fname_box, dpi=200)
         plt.close()
 
-        print(f"Графики для группы '{prefix}': {fname_avg.name}, {fname_box.name}")
+        print(f"Графики для '{prefix}': {fname_avg.name}, {fname_box.name}")
 
-    print(f"\nПостроение графиков завершено. Все результаты сохранены в папке 'plots/'")
-    print(f"Лучшие видео сохранены в папке 'output/'")
+    print(f"\n{'=' * 60}")
+    print(
+        f"Общее время выполнения: {total_elapsed:.2f} с ({total_elapsed / 60:.1f} мин)"
+    )
+    print(f"Графики сохранены в: plots/")
+    print(f"Лучшие видео сохранены в: output/")
+    print(f"Результаты CSV: {results_csv}")
 
 
 if __name__ == "__main__":
