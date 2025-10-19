@@ -1,6 +1,8 @@
+from pathlib import Path
+
 import cv2 as cv
 import numpy as np
-from pathlib import Path
+
 
 def process_video(
     input_path: str,
@@ -8,7 +10,7 @@ def process_video(
     lower_rgb: tuple,
     upper_rgb: tuple,
     min_area: int,
-    kernel_size: int = 5
+    kernel_size: int = 5,
 ):
     cap = cv.VideoCapture(input_path)
     if not cap.isOpened():
@@ -21,7 +23,7 @@ def process_video(
     out = cv.VideoWriter(output_path, cv.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
     # ядро свёртки для размытия (равномерное)
-    kernel = np.ones((kernel_size, kernel_size), np.float32) / (kernel_size ** 2)
+    kernel = np.ones((kernel_size, kernel_size), np.float32) / (kernel_size**2)
 
     while True:
         ret, frame = cap.read()
@@ -30,7 +32,7 @@ def process_video(
 
         rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
         mask = cv.inRange(rgb, np.array(lower_rgb), np.array(upper_rgb))
-        mask = cv.morphologyEx(mask, cv.MORPH_OPEN, np.ones((3,3), np.uint8))
+        mask = cv.morphologyEx(mask, cv.MORPH_OPEN, np.ones((3, 3), np.uint8))
         n_labels, labels, stats, _ = cv.connectedComponentsWithStats(mask)
 
         region_mask = np.zeros((h, w), dtype=np.uint8)
@@ -65,5 +67,5 @@ if __name__ == "__main__":
         lower_rgb=(214, 117, 13),
         upper_rgb=(255, 197, 93),
         min_area=500,
-        kernel_size=5  # можно менять 3, 5, 7, 9 — сильнее размытие
+        kernel_size=5,  # можно менять 3, 5, 7, 9 — сильнее размытие
     )
