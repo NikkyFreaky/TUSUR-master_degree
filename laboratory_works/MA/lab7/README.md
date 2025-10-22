@@ -13,5 +13,5 @@ docker exec mysql-db mysqldump -u user -ppassword lab7_db > ./dump.sql
 ### Восстановление базы данных из бэкапа
 
 ```bash
-docker exec -i mysql-db mysql -u user -ppassword lab7_db_restored < ./dump.sql
+docker exec -i mysql-db mysql -u user -ppassword lab7_db < ./dump.sql
 ```
