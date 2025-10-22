@@ -1,0 +1,25 @@
+services:
+  mysql-db:
+    image: mysql:9.0
+    container_name: mysql-db
+    env_file:
+      - ../.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: lab7_db
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - '3306:3306'
+    networks:
+      - lab7-net
+
+volumes:
+  db_data:
+
+networks:
+  lab7-net:
+    external: true
