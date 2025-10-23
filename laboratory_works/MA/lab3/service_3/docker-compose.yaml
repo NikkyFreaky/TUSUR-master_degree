@@ -1,9 +1,9 @@
 services:
-  service_1:
+  service_3:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: service_1
+    container_name: service_3
     env_file:
       - ../.env
     networks:

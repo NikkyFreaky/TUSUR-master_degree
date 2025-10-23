@@ -1,11 +1,11 @@
 {
-  "name": "service_2",
+  "name": "service_3",
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
   "author": "",
   "type": "commonjs",
-  "main": "service_2.js",
+  "main": "service_3.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

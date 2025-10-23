@@ -7,4 +7,4 @@ RUN npm install
 
 COPY . .
 
-CMD ["node", "service_2.js"]
+CMD ["node", "service_4.js"]
