@@ -10,6 +10,12 @@ docker compose --env-file ../.env up -d --build
 docker exec mysql-db mysqldump -u user -ppassword lab7_db > ./dump.sql
 ```
 
+### Удаление volume с базой данных
+
+```bash
+docker compose down -v
+```
+
 ### Восстановление базы данных из бэкапа
 
 ```bash
