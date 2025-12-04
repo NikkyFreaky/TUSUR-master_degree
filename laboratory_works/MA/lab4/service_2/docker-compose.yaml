@@ -1,0 +1,27 @@
+services:
+  service_2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: service_2
+    ports:
+      - "3001:3001"
+    networks: [lab4-net]
+    labels:
+      app: "lab4"
+      service: "service_2"
+      env: "dev"
+    environment:
+      LOG_LEVEL: info
+      NODE_ENV: dev
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201" # было udp://logstash:12201
+        tag: "service_2" # укажи свой тег: service_1 / service_2 / gateway
+        labels: "app,service,env"
+        env: "NODE_ENV,LOG_LEVEL"
+
+networks:
+  lab4-net:
+    external: true
