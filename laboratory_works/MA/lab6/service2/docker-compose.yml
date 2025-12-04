@@ -1,0 +1,20 @@
+services:
+  service2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: svc_service2
+    environment:
+      - SERVICE_NAME=Service-2
+      - PORT=3000
+      - AUTH_URL=http://auth:3000
+    expose:
+      - '3000'
+    env_file:
+      - ../.env
+    networks:
+      - lab6-net
+
+networks:
+  lab6-net:
+    external: true

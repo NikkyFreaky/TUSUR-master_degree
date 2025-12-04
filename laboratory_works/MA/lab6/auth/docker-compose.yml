@@ -1,0 +1,15 @@
+services:
+  auth:
+    build: .
+    container_name: svc_auth
+    environment:
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - '127.0.0.1:3001:3000'
+    networks:
+      - lab6-net
+
+networks:
+  lab6-net:
+    external: true

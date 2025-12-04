@@ -1,0 +1,15 @@
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: gateway_nginx
+    ports:
+      - '127.0.0.1:80:80'
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+    networks:
+      - lab6-net
+
+networks:
+  lab6-net:
+    external: true
