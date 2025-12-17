@@ -1,0 +1,14 @@
+services:
+  service_8:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: service_8
+    ports:
+      - "3001:3001"
+    networks:
+      - lab5-net
+
+networks:
+  lab5-net:
+    external: true

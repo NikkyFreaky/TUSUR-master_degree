@@ -1,0 +1,46 @@
+services:
+  gateway:
+    image: nginx:alpine
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: ingress
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/nginx.conf
+    networks:
+      - lab5-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  service_7:
+    image: ghcr.io/<OWNER>/lab5-service-7:latest
+    networks:
+      - lab5-net
+    deploy:
+      replicas: 3
+      placement:
+        preferences:
+          - spread: node.hostname
+
+  service_8:
+    image: ghcr.io/<OWNER>/lab5-service-8:latest
+    networks:
+      - lab5-net
+    deploy:
+      replicas: 3
+      placement:
+        preferences:
+          - spread: node.hostname
+
+networks:
+  lab5-net:
+    driver: overlay
+
+configs:
+  nginx_conf:
+    file: ./gateway/nginx.conf
