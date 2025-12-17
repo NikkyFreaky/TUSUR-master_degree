@@ -18,7 +18,7 @@ services:
           - node.role == manager
 
   service_7:
-    image: ghcr.io/<OWNER>/lab5-service-7:latest
+    image: ghcr.io/nikkyfreaky/tusur-master_degree-lab5-service-7:main
     networks:
       - lab5-net
     deploy:
@@ -28,7 +28,7 @@ services:
           - spread: node.hostname
 
   service_8:
-    image: ghcr.io/<OWNER>/lab5-service-8:latest
+    image: ghcr.io/nikkyfreaky/tusur-master_degree-lab5-service-8:main
     networks:
       - lab5-net
     deploy:
