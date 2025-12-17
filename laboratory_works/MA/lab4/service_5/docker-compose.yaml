@@ -1,0 +1,20 @@
+services:
+  service_5:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: service_5
+    ports:
+      - "3000:3000"
+    volumes:
+      - service_5_logs:/var/log/service_5
+    networks:
+      - lab4-net
+
+networks:
+  lab4-net:
+    external: true
+
+volumes:
+  service_5_logs:
+    name: service_5_logs

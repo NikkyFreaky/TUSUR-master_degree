@@ -7,4 +7,6 @@ RUN npm install
 
 COPY . .
 
-CMD ["node", "service_1.js"]
+EXPOSE 3001
+
+CMD ["node", "service_6.js"]

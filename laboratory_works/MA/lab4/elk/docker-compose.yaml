@@ -1,42 +1,58 @@
-networks:
-  lab4-net:
-    external: true
-
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.2
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
     ports:
       - "9200:9200"
-    restart: unless-stopped
-    networks: [lab4-net]
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - lab4-net
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.12.2
+    image: docker.elastic.co/kibana/kibana:9.2.2
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    depends_on: [elasticsearch]
     ports:
       - "5601:5601"
-    restart: unless-stopped
-    networks: [lab4-net]
+    depends_on:
+      - elasticsearch
+    networks:
+      - lab4-net
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:8.12.2
+    image: docker.elastic.co/logstash/logstash:9.2.2
     container_name: logstash
-    depends_on: [elasticsearch]
-    ports:
-      - "12201:12201/udp"
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
-    restart: unless-stopped
-    networks: [lab4-net]
+      - gateway_logs:/logs/gateway:ro
+      - service_5_logs:/logs/service_5:ro
+      - service_6_logs:/logs/service_6:ro
+    depends_on:
+      - elasticsearch
+    networks:
+      - lab4-net
+
+networks:
+  lab4-net:
+    external: true
+
+volumes:
+  esdata:
+    name: esdata
+
+  gateway_logs:
+    external: true
+    name: gateway_logs
+
+  service_5_logs:
+    external: true
+    name: service_5_logs
+
+  service_6_logs:
+    external: true
+    name: service_6_logs
