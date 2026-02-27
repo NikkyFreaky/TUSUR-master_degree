@@ -26,13 +26,13 @@ pipeline {
             }
             steps {
                 dir('lab2/service_1') {
-                    sh 'docker compose up -d --build'
+                    sh 'docker compose -f docker-compose.yaml up -d --build'
                 }
                 dir('lab2/service_2') {
-                    sh 'docker compose up -d --build'
+                    sh 'docker compose -f docker-compose.yaml up -d --build'
                 }
                 dir('lab2/gateway') {
-                    sh 'docker compose up -d'
+                    sh 'docker compose -f docker-compose.yaml up  -d'
                 }
             }
         }
