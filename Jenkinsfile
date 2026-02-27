@@ -25,13 +25,13 @@ pipeline {
                 branch 'main'
             }
             steps {
-                dir('lab2/service_1') {
+                dir('laboratory_works/MA/lab2/service_1') {
                     sh 'docker compose -f docker-compose.yaml up -d --build'
                 }
-                dir('lab2/service_2') {
+                dir('laboratory_works/MA/lab2/service_2') {
                     sh 'docker compose -f docker-compose.yaml up -d --build'
                 }
-                dir('lab2/gateway') {
+                dir('laboratory_works/MA/lab2/gateway') {
                     sh 'docker compose -f docker-compose.yaml up  -d'
                 }
             }
