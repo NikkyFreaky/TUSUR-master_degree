@@ -30,6 +30,9 @@ jobs:
           - name: lab5-service-8
             context: laboratory_works/MA/lab5/service_8
             dockerfile: laboratory_works/MA/lab5/service_8/Dockerfile
+          - name: lab2-gateway
+            context: laboratory_works/UIiRPS/lab4/gateway
+            dockerfile: laboratory_works/UIiRPS/lab4/gateway/Dockerfile
 
     steps:
       - name: Checkout
