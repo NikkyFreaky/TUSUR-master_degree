@@ -1,0 +1,24 @@
+{
+  "name": "cian-playwright-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:live": "cross-env HEADED=1 playwright test",
+    "test:live:video": "cross-env HEADED=1 VIDEO_MODE=on playwright test",
+    "test:ui": "playwright test --ui",
+    "test:setup": "playwright test --project=setup",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.0",
+    "cross-env": "^7.0.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "playwright": "^1.59.1"
+  }
+}
