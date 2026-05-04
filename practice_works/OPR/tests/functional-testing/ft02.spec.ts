@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { openAnyListingCard, openBuyPage } from './helpers/cian-actions.js';
+import { openAnyListingCard, openBuyPage } from '../helpers/cian-actions.js';
 
-test.describe('Карточка объявления', () => {
-  test('карточка открывается и содержит ключевые блоки', async ({ page }) => {
+test.describe('Функциональное тестирование', () => {
+  test('FT02 Карточка объявления открывается по клику из каталога', async ({ page }) => {
     await openBuyPage(page);
     await openAnyListingCard(page);
 

@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { applyBaseFilters, openBuyPage } from './helpers/cian-actions.js';
+import { applyBaseFilters, openBuyPage } from '../helpers/cian-actions.js';
 
-test.describe('Фильтры в каталоге', () => {
-  test('применяются фильтры комнат и цены', async ({ page }) => {
+test.describe('Функциональное тестирование', () => {
+  test('FT04 Фильтры по цене, площади, комнатности и типу жилья', async ({ page }) => {
     await openBuyPage(page);
     await applyBaseFilters(page);
 

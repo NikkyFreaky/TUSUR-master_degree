@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 const baseURL = process.env.BASE_URL ?? 'https://www.cian.ru';
 const headed = process.env.HEADED === '1';
 const videoMode = process.env.VIDEO_MODE ?? 'retain-on-failure';
+const authStatePath = 'playwright/.auth/user.json';
 
 export default defineConfig({
   testDir: './tests',
@@ -33,25 +34,22 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/user.json'
-      },
-      dependencies: ['setup']
+        storageState: authStatePath
+      }
     },
     {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
-        storageState: 'playwright/.auth/user.json'
-      },
-      dependencies: ['setup']
+        storageState: authStatePath
+      }
     },
     {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
-        storageState: 'playwright/.auth/user.json'
-      },
-      dependencies: ['setup']
+        storageState: authStatePath
+      }
     }
   ]
 });

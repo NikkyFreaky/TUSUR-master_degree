@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { humanPause } from '../../helpers/slow-actions.js';
+import { humanPause } from './slow-actions.js';
 
 export async function openBuyPage(page: Page): Promise<void> {
   await page.goto('/kupit/');
@@ -36,12 +36,16 @@ export async function applyBaseFilters(page: Page): Promise<void> {
   await roomsFilter.click({ timeout: 20_000 });
   await humanPause(600);
 
-  const oneRoomOption = page
-    .getByRole('button', { name: /^1$/ })
-    .or(page.getByRole('checkbox', { name: /^1$/ }))
-    .or(page.getByRole('radio', { name: /^1$/ }))
-    .or(page.getByText(/^1$/).first())
-    .or(page.getByText(/1-комн/i).first());
+  let oneRoomOption = page.getByRole('button', { name: /^1$/ }).first();
+  if (!(await oneRoomOption.isVisible().catch(() => false))) {
+    oneRoomOption = page.getByRole('checkbox', { name: /^1$/ }).first();
+  }
+  if (!(await oneRoomOption.isVisible().catch(() => false))) {
+    oneRoomOption = page.getByRole('radio', { name: /^1$/ }).first();
+  }
+  if (!(await oneRoomOption.isVisible().catch(() => false))) {
+    oneRoomOption = page.getByRole('button', { name: /1-комн/i }).first();
+  }
   if (!(await oneRoomOption.isVisible().catch(() => false))) {
     await roomsFilter.click({ timeout: 20_000 });
     await humanPause(500);
@@ -87,39 +91,6 @@ export async function openAnyListingCard(page: Page): Promise<string> {
   await expect(page).toHaveURL(/\/sale\/flat\//, { timeout: 30_000 });
 
   return cardUrl!;
-}
-
-export async function openFavoritesPage(page: Page): Promise<void> {
-  const favoritesHeaderLink = page
-    .locator('a[href*="/favorites/?activeTab=savedSearches"], a[href*="/rent/flat/favorites/"]')
-    .first();
-
-  if (await favoritesHeaderLink.isVisible().catch(() => false)) {
-    const rawHref = await favoritesHeaderLink.getAttribute('href');
-    if (rawHref) {
-      const normalizedHref = rawHref.startsWith('//') ? `https:${rawHref}` : rawHref;
-      const targetHref = normalizedHref.startsWith('http')
-        ? normalizedHref
-        : new URL(normalizedHref, page.url()).toString();
-      await page.goto(targetHref, { waitUntil: 'domcontentloaded' });
-    }
-  }
-
-  if (!/favorites/i.test(page.url())) {
-    await page.goto('https://www.cian.ru/favorites/?activeTab=savedSearches', { waitUntil: 'domcontentloaded' });
-  }
-
-  await expect(page).toHaveURL(/favorites/i, { timeout: 30_000 });
-
-  const adsTab = page
-    .getByRole('tab', { name: /Объявлен/i })
-    .or(page.getByRole('button', { name: /Объявлен/i }))
-    .or(page.getByRole('link', { name: /Объявлен/i }))
-    .first();
-  if (await adsTab.isVisible().catch(() => false)) {
-    await adsTab.click({ timeout: 20_000 });
-    await humanPause(500);
-  }
 }
 
 export async function hasAuthorizedSession(page: Page): Promise<boolean> {

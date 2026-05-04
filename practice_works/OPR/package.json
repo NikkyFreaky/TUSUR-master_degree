@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:live": "cross-env HEADED=1 playwright test",
-    "test:live:video": "cross-env HEADED=1 VIDEO_MODE=on playwright test",
+    "test": "node scripts/test-with-auth.mjs",
+    "test:pw": "playwright test",
+    "test:smart": "node scripts/test-with-auth.mjs",
+    "test:headed": "cross-env HEADED=1 node scripts/test-with-auth.mjs",
+    "test:live": "cross-env HEADED=1 node scripts/test-with-auth.mjs",
+    "test:live:video": "cross-env HEADED=1 VIDEO_MODE=on node scripts/test-with-auth.mjs",
     "test:ui": "playwright test --ui",
     "test:setup": "playwright test --project=setup",
     "report": "playwright show-report"
