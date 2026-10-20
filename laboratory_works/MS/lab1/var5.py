@@ -7,8 +7,8 @@ mean_y = 0
 sigma_x = 60
 sigma_y = 30
 
-factory_x = 150
-factory_y = 60
+factory_x = 75
+factory_y = 30
 
 rockets = 6
 
@@ -38,7 +38,7 @@ def simulation():
   return coord
 
 def is_hit(x, y):
-  return abs(x) <= factory_x / 2 and abs(y) <= factory_y / 2
+  return abs(x) <= factory_x and abs(y) <= factory_y
 
 def monte_carlo(n):
   total_hits = 0
@@ -56,7 +56,7 @@ def monte_carlo(n):
 def main():
   n = int(input("Введите количество выполнений: "))
   average_hits = monte_carlo(n)
-  print(f"Среднее число попаданий при атаке: {average_hits:.4f}")
+  print(f"\nСреднее число попаданий при атаке: {average_hits:.4f}\n")
 
 if __name__ == "__main__":
     main()
